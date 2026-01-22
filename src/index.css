@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { @apply bg-white text-gray-800; }
+
+.rtl { direction: rtl; }
+.ltr { direction: ltr; }
+
+.badge { @apply inline-block px-2 py-1 text-xs rounded-full bg-pink-500 text-white; }
