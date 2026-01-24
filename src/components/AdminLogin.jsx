@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+// console.log("Admin password from env:", import.meta.env.VITE_ADMIN_PASSWORD); // Debug line
+
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD; // Change this to your desired password
 
 export default function AdminLogin({ onLogin }) {
