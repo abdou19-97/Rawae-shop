@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ADMIN_PASSWORD = "rawae2026"; // Change this to your desired password
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD; // Change this to your desired password
 
 export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState("");
