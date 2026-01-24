@@ -68,10 +68,6 @@ export default function AdminLogin({ onLogin }) {
             Login
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Default password: rawae2026</p>
-        </div>
       </div>
     </div>
   );

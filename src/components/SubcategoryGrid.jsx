@@ -1,12 +1,12 @@
 import React from "react";
-import { categories } from "../data/categories";
-import products from "../data/products";
+import { useProductContext } from "../contexts/ProductContext";
 
 export default function SubcategoryGrid({
   categoryId,
   onNavigate,
   lang = "en",
 }) {
+  const { categories, products } = useProductContext();
   const category = categories.find((c) => c.id === categoryId);
   if (!category) return <div>Category not found</div>;
 
@@ -22,14 +22,13 @@ export default function SubcategoryGrid({
     return subcat.name;
   };
 
-  const getProductCount = (subcatId) => {
-    return products.filter((p) => p.subcategory === subcatId).length;
-  };
+  const getProductCount = (subcatId) =>
+    products.filter((p) => p.subcategory === subcatId).length;
 
   const t = {
-    en: { products: "products", product: "product" },
-    ar: { products: "منتج", product: "منتج" },
-    fr: { products: "produits", product: "produit" },
+    en: { products: "products" },
+    ar: { products: "منتج" },
+    fr: { products: "produits" },
   };
 
   return (

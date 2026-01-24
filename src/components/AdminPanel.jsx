@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { useProductContext } from "../contexts/ProductContext";
-import { useCategories } from "../hooks/useCategories";
 import ProductForm from "./ProductForm";
+import CategoryManager from "./CategoryManager";
 
 export default function AdminPanel({ onLogout }) {
-  const { products, addProduct, updateProduct, deleteProduct, resetProducts } =
+  const { products, addProduct, updateProduct, deleteProduct } =
     useProductContext();
-
-  const { categories, deleteCategory, deleteSubcategory } = useCategories();
 
   const [view, setView] = useState("list"); // 'list', 'add', 'edit', 'categories'
   const [editingProduct, setEditingProduct] = useState(null);
@@ -47,36 +45,6 @@ export default function AdminPanel({ onLogout }) {
     }
   };
 
-  const handleDeleteCategory = (categoryId) => {
-    const hasProducts = products.some((p) => p.category === categoryId);
-    if (hasProducts) {
-      alert(
-        "Cannot delete category - it has products. Delete the products first."
-      );
-      return;
-    }
-    if (confirm("Are you sure you want to delete this category?")) {
-      if (deleteCategory(categoryId)) {
-        alert("Category deleted successfully!");
-      }
-    }
-  };
-
-  const handleDeleteSubcategory = (categoryId, subcategoryId) => {
-    const hasProducts = products.some((p) => p.subcategory === subcategoryId);
-    if (hasProducts) {
-      alert(
-        "Cannot delete subcategory - it has products. Delete the products first."
-      );
-      return;
-    }
-    if (confirm("Are you sure you want to delete this subcategory?")) {
-      if (deleteSubcategory(categoryId, subcategoryId)) {
-        alert("Subcategory deleted successfully!");
-      }
-    }
-  };
-
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,7 +77,9 @@ export default function AdminPanel({ onLogout }) {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {view === "list" ? (
+        {view === "categories" ? (
+          <CategoryManager onBack={() => setView("list")} />
+        ) : view === "list" ? (
           <>
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -277,80 +247,6 @@ export default function AdminPanel({ onLogout }) {
               </div>
             </div>
           </>
-        ) : view === "categories" ? (
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Manage Categories</h2>
-              <button
-                onClick={() => setView("list")}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                ← Back to Products
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {categories.map((category) => (
-                <div key={category.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{category.icon}</span>
-                      <div>
-                        <h3 className="text-lg font-semibold">
-                          {category.name}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          ID: {category.id}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteCategory(category.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Delete Category
-                    </button>
-                  </div>
-
-                  <div className="ml-11 space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700">
-                      Subcategories:
-                    </h4>
-                    {category.subcategories &&
-                    category.subcategories.length > 0 ? (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {category.subcategories.map((sub) => (
-                          <div
-                            key={sub.id}
-                            className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                          >
-                            <span className="text-sm">{sub.name}</span>
-                            <button
-                              onClick={() =>
-                                handleDeleteSubcategory(category.id, sub.id)
-                              }
-                              className="text-red-500 hover:text-red-700 text-sm"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-400 italic">
-                        No subcategories yet
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-sm text-gray-500 mt-6">
-              💡 Tip: Add new categories and subcategories directly when
-              creating/editing products using the + button.
-            </p>
-          </div>
         ) : (
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-2xl font-bold mb-6">

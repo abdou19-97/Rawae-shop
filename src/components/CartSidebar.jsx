@@ -106,7 +106,7 @@ export default function CartSidebar({ open, onClose, lang = "en" }) {
 
     // Encode message for WhatsApp URL
     const encodedMessage = encodeURIComponent(message);
-    const phone = "222123456"; // Replace with your actual WhatsApp business number
+    const phone = "22248974777"; // Replace with your actual WhatsApp business number
     const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
 
     // Open WhatsApp

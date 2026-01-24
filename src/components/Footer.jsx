@@ -53,7 +53,7 @@ export default function Footer({ lang = "en" }) {
           <div>
             <h3 className="font-semibold mb-3">{t[lang].contact}</h3>
             <p className="text-sm text-gray-600">
-              {t[lang].phone}: +222 123 456
+              {t[lang].phone}: +222 48 97 47 77
             </p>
             <p className="text-sm text-gray-600">
               {t[lang].email}: info@rawa.co

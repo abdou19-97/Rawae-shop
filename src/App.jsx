@@ -150,8 +150,8 @@ function AppContent() {
                 {lang === "ar"
                   ? "العودة للرئيسية"
                   : lang === "fr"
-                  ? "Retour à l'Accueil"
-                  : "Back to Home"}
+                    ? "Retour à l'Accueil"
+                    : "Back to Home"}
               </button>
             </div>
             <SubcategoryGrid
@@ -172,8 +172,8 @@ function AppContent() {
                 {lang === "ar"
                   ? "الرئيسية"
                   : lang === "fr"
-                  ? "Accueil"
-                  : "Home"}
+                    ? "Accueil"
+                    : "Home"}
               </button>
               <span>›</span>
               <button
@@ -183,8 +183,8 @@ function AppContent() {
                 {lang === "ar"
                   ? "العودة للتصنيف"
                   : lang === "fr"
-                  ? "Retour à la Catégorie"
-                  : "Back to Category"}
+                    ? "Retour à la Catégorie"
+                    : "Back to Category"}
               </button>
             </div>
             <ProductList
@@ -216,7 +216,7 @@ function AppContent() {
         lang={lang}
       />
 
-      <FloatingContact phone="222123456" />
+      <FloatingContact phone="22248974777" />
     </div>
   );
 }

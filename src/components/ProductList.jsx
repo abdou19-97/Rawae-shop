@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useProductContext } from "../contexts/ProductContext";
 import ProductCard from "./ProductCard";
-import { categories } from "../data/categories";
 
 export default function ProductList({
   onAdd,
@@ -11,7 +10,7 @@ export default function ProductList({
   subcategoryId,
   lang = "en",
 }) {
-  const { products } = useProductContext();
+  const { products, categories } = useProductContext();
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("default");
 
@@ -66,7 +65,6 @@ export default function ProductList({
     p.name.toLowerCase().includes(q.toLowerCase())
   );
 
-  // Sorting
   if (sortBy === "price-low") {
     filtered = [...filtered].sort((a, b) => a.basePrice - b.basePrice);
   } else if (sortBy === "price-high") {
