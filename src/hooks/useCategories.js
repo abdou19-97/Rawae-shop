@@ -16,9 +16,12 @@ const COLLECTION_NAME = "categories";
 export function useCategories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
-  // Initialize Firestore with default categories if empty
+  // Initialize Firestore with default categories if empty (only once)
   const initializeCategories = async () => {
+    if (initialized) return; // Prevent multiple initializations
+
     try {
       const snapshot = await getDocs(collection(db, COLLECTION_NAME));
 
@@ -29,8 +32,10 @@ export function useCategories() {
         }
         console.log("Categories initialized!");
       }
+      setInitialized(true);
     } catch (error) {
       console.error("Error initializing categories:", error);
+      setInitialized(true); // Mark as initialized even on error
     }
   };
 
@@ -45,6 +50,11 @@ export function useCategories() {
         }));
         setCategories(categoriesData);
         setLoading(false);
+
+        // Initialize only after first snapshot and only once
+        if (!initialized) {
+          initializeCategories();
+        }
       },
       (error) => {
         console.error("Error fetching categories:", error);
@@ -52,10 +62,8 @@ export function useCategories() {
       },
     );
 
-    initializeCategories();
-
     return () => unsubscribe();
-  }, []);
+  }, [initialized]); // Add initialized as dependency
 
   // Add category
   const addCategory = async (category) => {
@@ -116,12 +124,15 @@ export function useCategories() {
       }
 
       // Check if subcategory already exists
-      if (category.subcategories.find((s) => s.id === subcategory.id)) {
+      if (category.subcategories?.find((s) => s.id === subcategory.id)) {
         alert("Subcategory ID already exists");
         return false;
       }
 
-      const updatedSubcategories = [...category.subcategories, subcategory];
+      const updatedSubcategories = [
+        ...(category.subcategories || []),
+        subcategory,
+      ];
       await updateCategory(categoryId, {
         subcategories: updatedSubcategories,
       });
@@ -140,7 +151,7 @@ export function useCategories() {
         throw new Error("Category not found");
       }
 
-      const updatedSubcategories = category.subcategories.map((sub) =>
+      const updatedSubcategories = (category.subcategories || []).map((sub) =>
         sub.id === subcategoryId ? { ...sub, ...updates } : sub,
       );
 
@@ -162,7 +173,7 @@ export function useCategories() {
         throw new Error("Category not found");
       }
 
-      const updatedSubcategories = category.subcategories.filter(
+      const updatedSubcategories = (category.subcategories || []).filter(
         (sub) => sub.id !== subcategoryId,
       );
 
