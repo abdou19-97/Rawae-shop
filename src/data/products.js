@@ -13,7 +13,7 @@ const products = [
     category: "skincare",
     subcategory: "serum",
     basePrice: 1200,
-    discount: 15, // 15% off
+    discount: 15,
     soldCount: 120,
     isNew: false,
     isFeatured: true,
@@ -41,7 +41,7 @@ const products = [
     category: "makeup",
     subcategory: "lipstick",
     basePrice: 800,
-    discount: 20, // 20% off
+    discount: 20,
     soldCount: 95,
     isNew: false,
     isFeatured: true,
@@ -225,4 +225,6 @@ const products = [
   },
 ];
 
+// Export as both default and named export for compatibility
 export default products;
+export { products as initialProducts };

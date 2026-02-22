@@ -17,6 +17,7 @@ export default function CategoryManager({ onBack }) {
   const [editingSubcategory, setEditingSubcategory] = useState(null);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddSubcategory, setShowAddSubcategory] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const [categoryForm, setCategoryForm] = useState({
     name: "",
@@ -32,16 +33,65 @@ export default function CategoryManager({ onBack }) {
     image: "",
   });
 
-  const handleImageUpload = (e, type) => {
+  // Upload to Cloudinary
+  const uploadToCloudinary = async (file) => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Cloudinary not configured");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Upload failed");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  const handleImageUpload = async (
+    e,
+    type,
+    categoryId = null,
+    subId = null,
+  ) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (type === "subcategory") {
-          setSubcategoryForm((prev) => ({ ...prev, image: reader.result }));
-        }
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image size must be less than 10MB");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const imageUrl = await uploadToCloudinary(file);
+
+      if (type === "subcategory" && categoryId && subId) {
+        handleUpdateSubcategoryImage(categoryId, subId, imageUrl);
+        alert("Subcategory image updated!");
+      } else if (type === "subcategory") {
+        setSubcategoryForm((prev) => ({ ...prev, image: imageUrl }));
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -52,7 +102,7 @@ export default function CategoryManager({ onBack }) {
   const handleUpdateSubcategoryImage = (
     categoryId,
     subcategoryId,
-    imageUrl
+    imageUrl,
   ) => {
     updateSubcategory(categoryId, subcategoryId, { image: imageUrl });
   };
@@ -110,7 +160,7 @@ export default function CategoryManager({ onBack }) {
     const hasProducts = products.some((p) => p.category === categoryId);
     if (hasProducts) {
       alert(
-        "Cannot delete category - it has products. Delete the products first."
+        "Cannot delete category - it has products. Delete the products first.",
       );
       return;
     }
@@ -125,7 +175,7 @@ export default function CategoryManager({ onBack }) {
     const hasProducts = products.some((p) => p.subcategory === subcategoryId);
     if (hasProducts) {
       alert(
-        "Cannot delete subcategory - it has products. Delete the products first."
+        "Cannot delete subcategory - it has products. Delete the products first.",
       );
       return;
     }
@@ -271,7 +321,7 @@ export default function CategoryManager({ onBack }) {
                     handleUpdateCategoryImage(
                       category.id,
                       "icon",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   className="text-2xl w-16 text-center border rounded px-2 py-1"
@@ -299,7 +349,7 @@ export default function CategoryManager({ onBack }) {
                 <button
                   onClick={() =>
                     setShowAddSubcategory(
-                      showAddSubcategory === category.id ? null : category.id
+                      showAddSubcategory === category.id ? null : category.id,
                     )
                   }
                   className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
@@ -456,7 +506,7 @@ export default function CategoryManager({ onBack }) {
                               handleUpdateSubcategoryImage(
                                 category.id,
                                 sub.id,
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="w-full px-2 py-1 border rounded text-xs"
@@ -465,22 +515,22 @@ export default function CategoryManager({ onBack }) {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  handleUpdateSubcategoryImage(
-                                    category.id,
-                                    sub.id,
-                                    reader.result
-                                  );
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
+                            onChange={(e) =>
+                              handleImageUpload(
+                                e,
+                                "subcategory",
+                                category.id,
+                                sub.id,
+                              )
+                            }
                             className="w-full text-xs"
+                            disabled={uploading}
                           />
+                          {uploading && (
+                            <p className="text-xs text-blue-600">
+                              Uploading...
+                            </p>
+                          )}
                         </div>
 
                         <button

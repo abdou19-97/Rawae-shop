@@ -19,13 +19,14 @@ export default function ProductForm({ product, onSave, onCancel }) {
       images: [""],
       gift: { name: "", image: "" },
       inStock: true,
-    }
+    },
   );
 
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddSubcategory, setShowAddSubcategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newSubcategoryName, setNewSubcategoryName] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const selectedCategory = categories.find((c) => c.id === formData.category);
 
@@ -95,14 +96,52 @@ export default function ProductForm({ product, onSave, onCancel }) {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, images: [reader.result] }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image size must be less than 10MB");
+      return;
+    }
+
+    setUploading(true);
+
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      alert("Cloudinary not configured. Please check your .env file.");
+      setUploading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      setFormData((prev) => ({ ...prev, images: [data.secure_url] }));
+      alert("Image uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -378,8 +417,12 @@ export default function ProductForm({ product, onSave, onCancel }) {
           accept="image/*"
           onChange={handleImageUpload}
           className="w-full px-4 py-2 border rounded-lg"
+          disabled={uploading}
         />
-        {formData.images[0] && (
+        {uploading && (
+          <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+        )}
+        {formData.images[0] && !uploading && (
           <img
             src={formData.images[0]}
             alt="Preview"
@@ -470,6 +513,7 @@ export default function ProductForm({ product, onSave, onCancel }) {
         <button
           type="submit"
           className="flex-1 bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700"
+          disabled={uploading}
         >
           {product ? "Update Product" : "Add Product"}
         </button>
