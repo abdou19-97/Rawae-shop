@@ -10,70 +10,68 @@ export default function AdminPanel({ onLogout }) {
   const [view, setView] = useState("list"); // 'list', 'add', 'edit', 'categories'
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [saving, setSaving] = useState(false); // NEW: loading state
 
   const handleLogout = () => {
     localStorage.removeItem("rawae_admin_auth");
     onLogout();
   };
 
-  // const handleAddProduct = async(productData) => {
-  //   if (addProduct(productData)) {
-  //     setView("list");
-  //     alert("Product added successfully!");
-  //   } else {
-  //     alert("Error adding product");
-  //   }
-
-  //   console.log("ENV CHECK:", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
-  // };
+  // FIXED: now async so Firestore write actually completes
   const handleAddProduct = async (productData) => {
-    const success = await addProduct(productData);
-    if (success) {
-      setView("list");
-      alert("Product added successfully!");
-    } else {
-      alert("Error adding product");
-    }
-  };
-
-  // const handleUpdateProduct = (productData) => {
-  //   if (updateProduct(editingProduct.id, productData)) {
-  //     setView("list");
-  //     setEditingProduct(null);
-  //     alert("Product updated successfully!");
-  //   } else {
-  //     alert("Error updating product");
-  //   }
-  // };
-
-  // const handleDeleteProduct = (id) => {
-  //   if (confirm("Are you sure you want to delete this product?")) {
-  //     if (deleteProduct(id)) {
-  //       alert("Product deleted successfully!");
-  //     } else {
-  //       alert("Error deleting product");
-  //     }
-  //   }
-  // };
-
-  const handleUpdateProduct = async (productData) => {
-    const success = await updateProduct(editingProduct.id, productData);
-    if (success) {
-      setView("list");
-      setEditingProduct(null);
-      alert("Product updated successfully!");
-    } else {
-      alert("Error updating product");
-    }
-  };
-
-  const handleDeleteProduct = async (id) => {
-    if (confirm("Are you sure?")) {
-      const success = await deleteProduct(id);
+    setSaving(true);
+    try {
+      const success = await addProduct(productData);
       if (success) {
-        alert("Product deleted successfully!");
+        setView("list");
+        alert("Product added successfully!");
       } else {
-        alert("Error deleting product");
+        alert("Error adding product. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error adding product: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // FIXED: now async
+  const handleUpdateProduct = async (productData) => {
+    setSaving(true);
+    try {
+      const success = await updateProduct(editingProduct.id, productData);
+      if (success) {
+        setView("list");
+        setEditingProduct(null);
+        alert("Product updated successfully!");
+      } else {
+        alert("Error updating product. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating product: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // FIXED: now async
+  const handleDeleteProduct = async (id) => {
+    if (confirm("Are you sure you want to delete this product?")) {
+      setSaving(true);
+      try {
+        const success = await deleteProduct(id);
+        if (success) {
+          alert("Product deleted successfully!");
+        } else {
+          alert("Error deleting product. Please try again.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting product: " + err.message);
+      } finally {
+        setSaving(false);
       }
     }
   };
@@ -108,6 +106,16 @@ export default function AdminPanel({ onLogout }) {
           </button>
         </div>
       </header>
+
+      {/* Saving overlay */}
+      {saving && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white px-8 py-6 rounded-lg shadow-xl text-center">
+            <div className="text-2xl mb-2">⏳</div>
+            <p className="text-gray-700 font-medium">Saving to database...</p>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {view === "categories" ? (
@@ -205,7 +213,7 @@ export default function AdminPanel({ onLogout }) {
                       <tr key={product.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <img
-                            src={product.images[0]}
+                            src={product.images?.[0]}
                             alt={product.name}
                             className="w-16 h-16 object-cover rounded"
                           />
@@ -292,6 +300,7 @@ export default function AdminPanel({ onLogout }) {
                 setView("list");
                 setEditingProduct(null);
               }}
+              saving={saving}
             />
           </div>
         )}

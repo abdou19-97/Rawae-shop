@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { useCategories } from "../hooks/useCategories";
 
-export default function ProductForm({ product, onSave, onCancel }) {
+// Accept saving prop from AdminPanel to disable submit while Firestore writes
+export default function ProductForm({
+  product,
+  onSave,
+  onCancel,
+  saving = false,
+}) {
   const { categories, addCategory, addSubcategory } = useCategories();
   const [formData, setFormData] = useState(
     product || {
@@ -34,7 +40,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddCategory = () => {
+  // FIXED: now async
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
 
     const categoryId = newCategoryName.toLowerCase().replace(/\s+/g, "-");
@@ -47,7 +54,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
       subcategories: [],
     };
 
-    if (addCategory(newCat)) {
+    const success = await addCategory(newCat);
+    if (success) {
       setFormData((prev) => ({
         ...prev,
         category: categoryId,
@@ -56,10 +64,13 @@ export default function ProductForm({ product, onSave, onCancel }) {
       setNewCategoryName("");
       setShowAddCategory(false);
       alert("Category added successfully!");
+    } else {
+      alert("Error adding category. Please try again.");
     }
   };
 
-  const handleAddSubcategory = () => {
+  // FIXED: now async
+  const handleAddSubcategory = async () => {
     if (!newSubcategoryName.trim() || !formData.category) return;
 
     const subcategoryId = newSubcategoryName.toLowerCase().replace(/\s+/g, "-");
@@ -71,11 +82,14 @@ export default function ProductForm({ product, onSave, onCancel }) {
       image: "https://images.unsplash.com/photo-1556228578-dd26e4254f4a?w=400",
     };
 
-    if (addSubcategory(formData.category, newSub)) {
+    const success = await addSubcategory(formData.category, newSub);
+    if (success) {
       setFormData((prev) => ({ ...prev, subcategory: subcategoryId }));
       setNewSubcategoryName("");
       setShowAddSubcategory(false);
       alert("Subcategory added successfully!");
+    } else {
+      alert("Error adding subcategory. Please try again.");
     }
   };
 
@@ -100,7 +114,6 @@ export default function ProductForm({ product, onSave, onCancel }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert("Image size must be less than 10MB");
       return;
@@ -117,25 +130,20 @@ export default function ProductForm({ product, onSave, onCancel }) {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", uploadPreset);
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", uploadPreset);
 
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        },
+        { method: "POST", body: data },
       );
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+      if (!response.ok) throw new Error("Upload failed");
 
-      const data = await response.json();
-      setFormData((prev) => ({ ...prev, images: [data.secure_url] }));
+      const result = await response.json();
+      setFormData((prev) => ({ ...prev, images: [result.secure_url] }));
       alert("Image uploaded successfully!");
     } catch (error) {
       console.error("Upload error:", error);
@@ -147,15 +155,14 @@ export default function ProductForm({ product, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Generate ID if new product
     const productData = {
       ...formData,
       id: product?.id || `p${Date.now()}`,
     };
-
     onSave(productData);
   };
+
+  const isDisabled = uploading || saving;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -417,7 +424,7 @@ export default function ProductForm({ product, onSave, onCancel }) {
           accept="image/*"
           onChange={handleImageUpload}
           className="w-full px-4 py-2 border rounded-lg"
-          disabled={uploading}
+          disabled={isDisabled}
         />
         {uploading && (
           <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
@@ -512,15 +519,22 @@ export default function ProductForm({ product, onSave, onCancel }) {
       <div className="flex gap-4 pt-4 border-t">
         <button
           type="submit"
-          className="flex-1 bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700"
-          disabled={uploading}
+          className="flex-1 bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={isDisabled}
         >
-          {product ? "Update Product" : "Add Product"}
+          {saving
+            ? "Saving..."
+            : uploading
+              ? "Uploading..."
+              : product
+                ? "Update Product"
+                : "Add Product"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+          disabled={isDisabled}
+          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
         >
           Cancel
         </button>
