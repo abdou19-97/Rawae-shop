@@ -23,6 +23,8 @@ export default function AdminPanel({ onLogout }) {
     } else {
       alert("Error adding product");
     }
+
+    console.log("ENV CHECK:", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
   };
 
   const handleUpdateProduct = (productData) => {
@@ -48,7 +50,7 @@ export default function AdminPanel({ onLogout }) {
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+      p.brand.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const stats = {
