@@ -124,6 +124,7 @@ export default function ProductForm({
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+    console.log("Cloudinary Config:", { cloudName, uploadPreset }); // Debug line
     if (!cloudName || !uploadPreset) {
       alert("Cloudinary not configured. Please check your .env file.");
       setUploading(false);
@@ -140,14 +141,24 @@ export default function ProductForm({
         { method: "POST", body: data },
       );
 
-      if (!response.ok) throw new Error("Upload failed");
-
       const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Cloudinary error:", result);
+        throw new Error(result.error?.message || "Upload failed");
+      }
       setFormData((prev) => ({ ...prev, images: [result.secure_url] }));
       alert("Image uploaded successfully!");
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Failed to upload image. Please try again.");
+      alert(
+        "Failed to upload image.\n\n" +
+          "Please:\n" +
+          "1. Use the 'Or enter image URL' field below\n" +
+          "2. Upload your image to imgur.com\n" +
+          "3. Paste the direct image link\n\n" +
+          `Error: ${error.message}`,
+      );
     } finally {
       setUploading(false);
     }
