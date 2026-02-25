@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import products from "../data/products";
+// import products from "../data/products";
+import { useProducts } from "../hooks/useProducts";
 
 const CartContext = createContext();
 
@@ -15,6 +16,7 @@ function tieredUnitPrice(base, qty) {
 }
 
 export function CartProvider({ children }) {
+  const { products } = useProducts();
   const [items, setItems] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("cart") || "[]");
@@ -33,7 +35,7 @@ export function CartProvider({ children }) {
       const found = prev.find((i) => i.id === productId);
       if (found)
         return prev.map((i) =>
-          i.id === productId ? { ...i, qty: i.qty + qty } : i
+          i.id === productId ? { ...i, qty: i.qty + qty } : i,
         );
       return [...prev, { id: productId, qty }];
     });
@@ -44,7 +46,7 @@ export function CartProvider({ children }) {
   }
   function updateQty(productId, qty) {
     setItems((prev) =>
-      prev.map((i) => (i.id === productId ? { ...i, qty } : i))
+      prev.map((i) => (i.id === productId ? { ...i, qty } : i)),
     );
   }
   function clear() {
