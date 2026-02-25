@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 // import products from "../data/products";
-import { useProducts } from "../hooks/useProducts";
+// import { useProducts } from "../hooks/useProducts";
+import { useProductContext } from "./ProductContext";
 
 const CartContext = createContext();
 
@@ -16,7 +17,8 @@ function tieredUnitPrice(base, qty) {
 }
 
 export function CartProvider({ children }) {
-  const { products } = useProducts();
+  //const { products } = useProducts();
+  const { products } = useProductContext();
   const [items, setItems] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("cart") || "[]");

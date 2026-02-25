@@ -16,19 +16,49 @@ export default function AdminPanel({ onLogout }) {
     onLogout();
   };
 
-  const handleAddProduct = (productData) => {
-    if (addProduct(productData)) {
+  // const handleAddProduct = async(productData) => {
+  //   if (addProduct(productData)) {
+  //     setView("list");
+  //     alert("Product added successfully!");
+  //   } else {
+  //     alert("Error adding product");
+  //   }
+
+  //   console.log("ENV CHECK:", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+  // };
+  const handleAddProduct = async (productData) => {
+    const success = await addProduct(productData);
+    if (success) {
       setView("list");
       alert("Product added successfully!");
     } else {
       alert("Error adding product");
     }
-
-    console.log("ENV CHECK:", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
   };
 
-  const handleUpdateProduct = (productData) => {
-    if (updateProduct(editingProduct.id, productData)) {
+  // const handleUpdateProduct = (productData) => {
+  //   if (updateProduct(editingProduct.id, productData)) {
+  //     setView("list");
+  //     setEditingProduct(null);
+  //     alert("Product updated successfully!");
+  //   } else {
+  //     alert("Error updating product");
+  //   }
+  // };
+
+  // const handleDeleteProduct = (id) => {
+  //   if (confirm("Are you sure you want to delete this product?")) {
+  //     if (deleteProduct(id)) {
+  //       alert("Product deleted successfully!");
+  //     } else {
+  //       alert("Error deleting product");
+  //     }
+  //   }
+  // };
+
+  const handleUpdateProduct = async (productData) => {
+    const success = await updateProduct(editingProduct.id, productData);
+    if (success) {
       setView("list");
       setEditingProduct(null);
       alert("Product updated successfully!");
@@ -37,9 +67,10 @@ export default function AdminPanel({ onLogout }) {
     }
   };
 
-  const handleDeleteProduct = (id) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      if (deleteProduct(id)) {
+  const handleDeleteProduct = async (id) => {
+    if (confirm("Are you sure?")) {
+      const success = await deleteProduct(id);
+      if (success) {
         alert("Product deleted successfully!");
       } else {
         alert("Error deleting product");
