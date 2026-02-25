@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection,
   getDocs,
@@ -13,47 +13,58 @@ import { initialProducts } from "../data/products";
 
 const COLLECTION_NAME = "products";
 
+// Wraps a promise with a timeout so it never hangs forever
+function withTimeout(promise, ms = 10000) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Firestore timeout after ${ms}ms`)), ms),
+  );
+  return Promise.race([promise, timeout]);
+}
+
 export function useProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const initializedRef = useRef(false); // Use ref instead of state to avoid stale closures
 
   // Initialize Firestore with default products if empty (only once)
   const initializeProducts = async () => {
-    if (initialized) return; // Prevent multiple initializations
+    if (initializedRef.current) return;
+    initializedRef.current = true; // Set immediately to prevent race conditions
 
     try {
-      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      const snapshot = await withTimeout(
+        getDocs(collection(db, COLLECTION_NAME)),
+      );
 
       if (snapshot.empty) {
         console.log("Initializing products in Firestore...");
-        // Add all initial products
         for (const product of initialProducts) {
-          await addDoc(collection(db, COLLECTION_NAME), product);
+          await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
         }
         console.log("Products initialized!");
       }
-      setInitialized(true);
     } catch (error) {
       console.error("Error initializing products:", error);
-      setInitialized(true); // Mark as initialized even on error
     }
   };
 
   // Real-time listener for products
   useEffect(() => {
+    let firstSnapshot = true;
+
     const unsubscribe = onSnapshot(
       collection(db, COLLECTION_NAME),
       (snapshot) => {
         const productsData = snapshot.docs.map((doc) => ({
           ...doc.data(),
-          firestoreId: doc.id, // Store Firestore document ID
+          firestoreId: doc.id,
         }));
         setProducts(productsData);
         setLoading(false);
 
-        // Initialize only after first snapshot and only once
-        if (!initialized) {
+        // Only initialize on the very first snapshot
+        if (firstSnapshot) {
+          firstSnapshot = false;
           initializeProducts();
         }
       },
@@ -64,16 +75,18 @@ export function useProducts() {
     );
 
     return () => unsubscribe();
-  }, [initialized]); // Add initialized as dependency
+  }, []); // Empty dependency array — only run once on mount
 
   // Add product
   const addProduct = async (product) => {
     try {
-      await addDoc(collection(db, COLLECTION_NAME), product);
+      console.log("addProduct: writing to Firestore...");
+      await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
+      console.log("addProduct: success!");
       return true;
     } catch (error) {
       console.error("Error adding product:", error);
-      alert("Failed to add product. Check console for details.");
+      alert(`Failed to add product: ${error.message}`);
       return false;
     }
   };
@@ -81,18 +94,16 @@ export function useProducts() {
   // Update product
   const updateProduct = async (productId, updates) => {
     try {
-      // Find the Firestore document ID
       const product = products.find((p) => p.id === productId);
       if (!product?.firestoreId) {
-        throw new Error("Product not found");
+        throw new Error("Product not found in local state");
       }
-
       const productRef = doc(db, COLLECTION_NAME, product.firestoreId);
-      await updateDoc(productRef, updates);
+      await withTimeout(updateDoc(productRef, updates));
       return true;
     } catch (error) {
       console.error("Error updating product:", error);
-      alert("Failed to update product. Check console for details.");
+      alert(`Failed to update product: ${error.message}`);
       return false;
     }
   };
@@ -102,15 +113,14 @@ export function useProducts() {
     try {
       const product = products.find((p) => p.id === productId);
       if (!product?.firestoreId) {
-        throw new Error("Product not found");
+        throw new Error("Product not found in local state");
       }
-
       const productRef = doc(db, COLLECTION_NAME, product.firestoreId);
-      await deleteDoc(productRef);
+      await withTimeout(deleteDoc(productRef));
       return true;
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert("Failed to delete product. Check console for details.");
+      alert(`Failed to delete product: ${error.message}`);
       return false;
     }
   };
