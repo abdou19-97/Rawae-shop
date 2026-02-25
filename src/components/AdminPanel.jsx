@@ -18,10 +18,15 @@ export default function AdminPanel({ onLogout }) {
   };
 
   // FIXED: now async so Firestore write actually completes
+  // FIXED: now async so Firestore write actually completes
   const handleAddProduct = async (productData) => {
+    console.log("handleAddProduct called with:", productData);
     setSaving(true);
     try {
+      console.log("Calling addProduct...");
       const success = await addProduct(productData);
+      console.log("addProduct returned:", success);
+
       if (success) {
         setView("list");
         alert("Product added successfully!");
@@ -29,9 +34,10 @@ export default function AdminPanel({ onLogout }) {
         alert("Error adding product. Please try again.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error in handleAddProduct:", err);
       alert("Error adding product: " + err.message);
     } finally {
+      console.log("Setting saving to false");
       setSaving(false);
     }
   };
