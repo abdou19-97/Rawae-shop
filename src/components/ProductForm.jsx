@@ -164,15 +164,22 @@ export default function ProductForm({
     }
   };
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const productData = {
+  //     ...formData,
+  //     id: product?.id || `p${Date.now()}`,
+  //   };
+  //   onSave(productData);
+  // };
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const productData = {
       ...formData,
       id: product?.id || `p${Date.now()}`,
     };
-    onSave(productData);
+    await onSave(productData);
   };
-
   const isDisabled = uploading || saving;
 
   return (
