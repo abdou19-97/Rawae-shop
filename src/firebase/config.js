@@ -9,13 +9,23 @@ Object.keys(import.meta.env)
     console.log(`  ${key}:`, import.meta.env[key] ? "✅ Set" : "❌ Missing");
   });
 
+// TEMPORARY: Hardcoded config as fallback (REMOVE IN PRODUCTION!)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:
+    import.meta.env.VITE_FIREBASE_API_KEY ||
+    "AIzaSyBQaS4VS2Sl9F5Dz77oAHPTWCQvkNsDTPI",
+  authDomain:
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
+    "rawae-cosmatics.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "rawae-cosmatics",
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    "rawae-cosmatics.firebasestorage.app",
+  messagingSenderId:
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "991631205104",
+  appId:
+    import.meta.env.VITE_FIREBASE_APP_ID ||
+    "1:991631205104:web:3836fd6ce6c4fb9f395835",
 };
 
 console.log("🔧 Firebase Config:");
@@ -23,18 +33,10 @@ console.log("  API Key:", firebaseConfig.apiKey ? "✅ Set" : "❌ Missing");
 console.log("  Project ID:", firebaseConfig.projectId || "❌ Missing");
 console.log("  Auth Domain:", firebaseConfig.authDomain || "❌ Missing");
 
-// Throw error if critical config is missing
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  const error = new Error(
-    "❌ CRITICAL: Firebase configuration is incomplete!\n\n" +
-      "Missing variables:\n" +
-      (!firebaseConfig.apiKey ? "- VITE_FIREBASE_API_KEY\n" : "") +
-      (!firebaseConfig.projectId ? "- VITE_FIREBASE_PROJECT_ID\n" : "") +
-      "\nMake sure environment variables are set in Vercel:\n" +
-      "Settings → Environment Variables",
-  );
-  console.error(error);
-  throw error;
+if (import.meta.env.VITE_FIREBASE_API_KEY) {
+  console.log("✅ Using environment variables");
+} else {
+  console.warn("⚠️ WARNING: Using hardcoded Firebase config (temporary)");
 }
 
 const app = initializeApp(firebaseConfig);
