@@ -32,6 +32,7 @@ export function useProducts() {
     initializedRef.current = true; // Set immediately to prevent race conditions
 
     try {
+      console.log("🔍 Checking if products collection is empty...");
       const snapshot = await withTimeout(
         getDocs(collection(db, COLLECTION_NAME)),
       );
@@ -42,6 +43,8 @@ export function useProducts() {
           await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
         }
         console.log("Products initialized!");
+      } else {
+        console.log(`✅ Found ${snapshot.size} existing products`);
       }
     } catch (error) {
       console.error("Error initializing products:", error);
@@ -55,6 +58,7 @@ export function useProducts() {
     const unsubscribe = onSnapshot(
       collection(db, COLLECTION_NAME),
       (snapshot) => {
+        console.log(`📦 Received ${snapshot.size} products from Firestore`);
         const productsData = snapshot.docs.map((doc) => ({
           ...doc.data(),
           firestoreId: doc.id,

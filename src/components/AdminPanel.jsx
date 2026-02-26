@@ -17,6 +17,83 @@ export default function AdminPanel({ onLogout }) {
     onLogout();
   };
 
+  // Add this function in AdminPanel.jsx after handleDeleteProduct:
+
+  const testFirebaseConnection = async () => {
+    console.log("🧪 === FIREBASE CONNECTION TEST ===");
+
+    try {
+      // Check environment variables
+      console.log("1️⃣ Environment Variables:");
+      console.log(
+        "  API Key:",
+        import.meta.env.VITE_FIREBASE_API_KEY ? "✅ Set" : "❌ Missing",
+      );
+      console.log(
+        "  Project ID:",
+        import.meta.env.VITE_FIREBASE_PROJECT_ID || "❌ Missing",
+      );
+      console.log(
+        "  Auth Domain:",
+        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "❌ Missing",
+      );
+
+      // Check database instance
+      console.log("2️⃣ Database Instance:");
+      const { db } = await import("../firebase/config");
+      console.log("  Database:", db ? "✅ Initialized" : "❌ Not initialized");
+      console.log("  Database type:", db?.type || "unknown");
+
+      // Try to read from Firestore
+      console.log("3️⃣ Testing READ access...");
+      const { collection, getDocs } = await import("firebase/firestore");
+      const snapshot = await getDocs(collection(db, "products"));
+      console.log("  ✅ READ successful! Found", snapshot.size, "products");
+
+      // Try to write to Firestore
+      console.log("4️⃣ Testing WRITE access...");
+      const { addDoc, deleteDoc, doc } = await import("firebase/firestore");
+
+      const testData = {
+        test: true,
+        timestamp: new Date().toISOString(),
+        name: "Test Product - DELETE ME",
+      };
+
+      const docRef = await addDoc(collection(db, "products"), testData);
+      console.log("  ✅ WRITE successful! Doc ID:", docRef.id);
+
+      // Clean up test document
+      console.log("5️⃣ Cleaning up test document...");
+      await deleteDoc(doc(db, "products", docRef.id));
+      console.log("  ✅ Cleanup successful!");
+
+      alert(
+        "✅ All Firebase tests passed!\n\nFirestore is working correctly.\n\nCheck console for details.",
+      );
+    } catch (error) {
+      console.error("❌ Firebase test failed:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+
+      let diagnosis = "❌ Firebase Connection Test Failed\n\n";
+
+      if (error.code === "permission-denied") {
+        diagnosis +=
+          "🚫 PERMISSION DENIED\n\nFirestore security rules are blocking access.\n\nFix:\n1. Go to Firebase Console\n2. Select your project\n3. Firestore Database → Rules\n4. Change to: allow read, write: if true;\n5. Click Publish";
+      } else if (error.message.includes("timeout")) {
+        diagnosis +=
+          "⏱️ CONNECTION TIMEOUT\n\nCannot reach Firebase servers.\n\nCheck:\n1. Internet connection\n2. Firewall settings\n3. Firebase project status";
+      } else {
+        diagnosis += `Error: ${error.message}\nCode: ${error.code || "unknown"}`;
+      }
+
+      alert(diagnosis);
+    }
+
+    console.log("🏁 === TEST COMPLETE ===");
+  };
+
   // FIXED: now async so Firestore write actually completes
   // FIXED: now async so Firestore write actually completes
   const handleAddProduct = async (productData) => {
@@ -170,6 +247,12 @@ export default function AdminPanel({ onLogout }) {
                   className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                 >
                   📁 Manage Categories
+                </button>
+                <button
+                  onClick={testFirebaseConnection}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  🧪 Test Firebase
                 </button>
               </div>
             </div>
