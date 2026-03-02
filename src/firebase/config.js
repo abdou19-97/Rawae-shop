@@ -1,5 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 // Validate that all required environment variables are present
 const requiredEnvVars = [
@@ -37,8 +41,9 @@ console.log("✅ Firebase configuration loaded from environment variables");
 const app = initializeApp(firebaseConfig);
 
 export const db = initializeFirestore(app, {
-  localCache: memoryLocalCache(),
-  experimentalAutoDetectLongPolling: true,
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
 });
 
 console.log("✅ Firebase initialized successfully");

@@ -1,7 +1,9 @@
 import React from "react";
-import products from "../data/products";
+// import products from "../data/products";
+import { useProductContext } from "../contexts/ProductContext";
 
 export default function QuickView({ id, onClose, onAdd }) {
+  const { products } = useProductContext();
   if (!id) return null;
   const p = products.find((x) => x.id === id);
   if (!p) return null;
