@@ -63,10 +63,10 @@ export function useProducts() {
         setLoading(false);
 
         // Only initialize on the very first snapshot
-        if (firstSnapshot) {
-          firstSnapshot = false;
-          initializeProducts();
-        }
+        // if (firstSnapshot) {
+        //   firstSnapshot = false;
+        //   initializeProducts();
+        // }
       },
       (error) => {
         console.error("Error fetching products:", error);

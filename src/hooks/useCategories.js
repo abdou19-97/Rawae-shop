@@ -52,9 +52,9 @@ export function useCategories() {
         setLoading(false);
 
         // Initialize only after first snapshot and only once
-        if (!initialized) {
-          initializeCategories();
-        }
+        // if (!initialized) {
+        //   initializeCategories();
+        // }
       },
       (error) => {
         console.error("Error fetching categories:", error);
