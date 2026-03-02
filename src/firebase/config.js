@@ -20,7 +20,6 @@ const missingVars = requiredEnvVars.filter(
 );
 
 if (missingVars.length > 0) {
-  console.error("❌ Missing required environment variables:", missingVars);
   throw new Error(
     `Missing environment variables: ${missingVars.join(", ")}\n` +
       "Please check your .env file and ensure all VITE_FIREBASE_* variables are set.",
@@ -36,8 +35,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-console.log("✅ Firebase configuration loaded from environment variables");
-
 const app = initializeApp(firebaseConfig);
 
 export const db = initializeFirestore(app, {
@@ -45,5 +42,3 @@ export const db = initializeFirestore(app, {
     tabManager: persistentMultipleTabManager(),
   }),
 });
-
-console.log("✅ Firebase initialized successfully");

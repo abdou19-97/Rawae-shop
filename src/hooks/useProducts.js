@@ -9,7 +9,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { initialProducts } from "../data/products";
+// import { initialProducts } from "../data/products";
 
 const COLLECTION_NAME = "products";
 
@@ -27,29 +27,26 @@ export function useProducts() {
   const initializedRef = useRef(false); // Use ref instead of state to avoid stale closures
 
   // Initialize Firestore with default products if empty (only once)
-  const initializeProducts = async () => {
-    if (initializedRef.current) return;
-    initializedRef.current = true; // Set immediately to prevent race conditions
+  // const initializeProducts = async () => {
+  //   if (initializedRef.current) return;
+  //   initializedRef.current = true; // Set immediately to prevent race conditions
 
-    try {
-      console.log("🔍 Checking if products collection is empty...");
-      const snapshot = await withTimeout(
-        getDocs(collection(db, COLLECTION_NAME)),
-      );
+  //   try {
+  //     const snapshot = await withTimeout(
+  //       getDocs(collection(db, COLLECTION_NAME)),
+  //     );
 
-      if (snapshot.empty) {
-        console.log("Initializing products in Firestore...");
-        for (const product of initialProducts) {
-          await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
-        }
-        console.log("Products initialized!");
-      } else {
-        console.log(`✅ Found ${snapshot.size} existing products`);
-      }
-    } catch (error) {
-      console.error("Error initializing products:", error);
-    }
-  };
+  //     if (snapshot.empty) {
+  //       for (const product of initialProducts) {
+  //         await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
+  //       }
+  //     } else {
+  //       console.log(`✅ Found ${snapshot.size} existing products`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error initializing products:", error);
+  //   }
+  // };
 
   // Real-time listener for products
   useEffect(() => {
@@ -58,7 +55,6 @@ export function useProducts() {
     const unsubscribe = onSnapshot(
       collection(db, COLLECTION_NAME),
       (snapshot) => {
-        console.log(`📦 Received ${snapshot.size} products from Firestore`);
         const productsData = snapshot.docs.map((doc) => ({
           ...doc.data(),
           firestoreId: doc.id,
@@ -84,7 +80,6 @@ export function useProducts() {
   // Add product
   const addProduct = async (product) => {
     try {
-      console.log("addProduct: writing to Firestore...");
       await withTimeout(addDoc(collection(db, COLLECTION_NAME), product));
       console.log("addProduct: success!");
       return true;

@@ -9,7 +9,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { categories as initialCategories } from "../data/categories";
+// import { categories as initialCategories } from "../data/categories";
 
 const COLLECTION_NAME = "categories";
 
@@ -19,25 +19,25 @@ export function useCategories() {
   const [initialized, setInitialized] = useState(false);
 
   // Initialize Firestore with default categories if empty (only once)
-  const initializeCategories = async () => {
-    if (initialized) return; // Prevent multiple initializations
+  // const initializeCategories = async () => {
+  //   if (initialized) return; // Prevent multiple initializations
 
-    try {
-      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+  //   try {
+  //     const snapshot = await getDocs(collection(db, COLLECTION_NAME));
 
-      if (snapshot.empty) {
-        console.log("Initializing categories in Firestore...");
-        for (const category of initialCategories) {
-          await addDoc(collection(db, COLLECTION_NAME), category);
-        }
-        console.log("Categories initialized!");
-      }
-      setInitialized(true);
-    } catch (error) {
-      console.error("Error initializing categories:", error);
-      setInitialized(true); // Mark as initialized even on error
-    }
-  };
+  //     if (snapshot.empty) {
+  //       console.log("Initializing categories in Firestore...");
+  //       for (const category of initialCategories) {
+  //         await addDoc(collection(db, COLLECTION_NAME), category);
+  //       }
+  //       console.log("Categories initialized!");
+  //     }
+  //     setInitialized(true);
+  //   } catch (error) {
+  //     console.error("Error initializing categories:", error);
+  //     setInitialized(true); // Mark as initialized even on error
+  //   }
+  // };
 
   // Real-time listener for categories
   useEffect(() => {
