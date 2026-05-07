@@ -75,4 +75,4 @@ vercel
 
 ## License
 
-All rights reserved © Nuba-Taleb
+All rights reserved
